@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import os
-import subprocess
+import numpy as np
 import csv
 import re
-import Bio
+from subprocess import Popen, PIPE, STDOUT
 # biopython needed: pip install biopython 
 # still need to work out how best to align these sequences
 #from Bio import AlignIO,SeqIO
@@ -28,6 +27,9 @@ dir = '/sansom/s156a/bioc1535/MraY/EC_other_protein/Data'
 csvfile_list = [ "%s/Interaction_UDP1_DEDA/Dataset_UDP1/Dataset.csv" % dir,
 		 "%s/Interaction_UDP1_UPTA/Dataset_UDP1/Dataset.csv" % dir ]
 
+# List of names for sequnece alignment (optional)
+system_names = [ "DEDA", "UPTA" ]
+
 # List of input coordinate files - can be CG or AT
 #coord_files = [	"%s/Interaction_UDP1_UPTA/Coordinate_UDP1/Coordinate_UDP1_Occupancy.pdb" % dir,
 #		"%s/Interaction_UDP1_UPTA/Coordinate_UDP1/Coordinate_UDP1_Occupancy.pdb" % dir ]
@@ -43,6 +45,7 @@ csvfile_list = [ "%s/Interaction_UDP1_DEDA/Dataset_UDP1/Dataset.csv" % dir,
 #######################################
 
 def get_number_of_systems():
+	# not currently needed
 	csv_number = len(csvfile_list)
 	coord_number = len(coord_files)
 	if csv_number == coord_number:
@@ -79,60 +82,66 @@ def write_data(heatmap,attribute,csvfile):
 	f.write('\n\n')
 
 def sequence_alignment():
-	with open('%s/HeatmapAlignment/Alignment.log' % dir,'w+') as f:
-		stream = os.popen('mafft --globalpair --maxiterate 16 --clustalout --inputorder "HeatmapAlignment/Sequences.txt" > "HeatmapAlignment/Alignment.txt"')
-#	with open('%s/HeatmapAlignment/Alignment.log' % dir,'w+') as f:
-#		stream = subprocess.Popen('mafft --globalpair --maxiterate 16 --clustalout --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (dir, dir), stdout=f)
-#	stream = subprocess.Popen('mafft --globalpair --maxiterate 16 --clustalout --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (dir, dir))
-
-def get_lipid_heatmap():
-	pass
+	# build and perform mafft
+	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (dir, dir)
+	process = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
+	# write mafft output to log file, not stdout
+	f = open('%s/HeatmapAlignment/Alignment.log' % dir, 'a')
+	with process.stdout:
+		for line in iter(process.stdout.readline, b''):
+			f.write(line.decode("utf-8"))
 
 def plot_heatmap_on_alignment():
-	pass
-
-for csvfile in csvfile_list:
-	#print(csvfile)
 	pass
 
 ######################
 ### Run everything ###
 ######################
 
+# build directories and file structure
+
 try:
 	os.mkdir('%s/HeatmapAlignment' % dir)
 except OSError as error:
 	pass
 
-# rewrite sequence file
 f = open('%s/HeatmapAlignment/Sequences.txt' % dir,'w')
 f = open('%s/HeatmapAlignment/Occupancy.txt' % dir,'w')
 f = open('%s/HeatmapAlignment/Alignment.log' % dir,'w')
 
 # define dictionary for AA codes - allows customisation
+
 res_dict = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
 	'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
 	'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
 	'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M',
 	'HSD': 'H', 'HSE': 'H', 'GLU0': 'E', 'ASP0': 'D'}
 
-#sys_number = get_number_of_systems()
-
 print('Loading Data')
+
+# loop through inputs and get sequences and heatmaps
 
 for i in np.arange(len(csvfile_list)):
 	# get AA sequence and occupancy values
 	sequence,heatmap,attribute = get_sequence(csvfile_list[i], 4)
 	# write to file for later analysis/posterity
 	write_fasta(sequence,csvfile_list[i])
-	write_data(heatmap,attribute,csvfile_list[i])
+	write_data(heatmap,attribute[0],csvfile_list[i])
 
-print('Done. Files written to %s/HeatmapAlignment')
+print('Done. Files written to %s/HeatmapAlignment' % dir)
 	
 # run sequence alignment on all sequneces
-print('Running alignment')
-sequence_alignment() #'%s/HeatmapAlignment/Alignment.log')
-print('Done. Alignment file written to %s/HeatmapAlignment')
 
-#for sys in sys_number:
-	
+print('Running alignment')
+
+sequence_alignment()
+
+print('Done. Alignment file written to %s/HeatmapAlignment' % dir)
+
+# combine all into a lovely plot
+
+print('Making plot')
+
+plot_heatmap_on_alignment()
+
+print('Done')
