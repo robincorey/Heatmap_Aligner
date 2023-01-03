@@ -3,11 +3,20 @@ About
 
 A Python script to take the output of multiple PyLipID runs (csv), and plot onto a sequence alignment.
 
-Pseudo-code:
+Currently most of the way there.
 
-1. Get sequence and occupancy/duration info from PyLipID
-2. Perform sequence alignment with mafft.
-3. Somehow format the occupancy/duration data to match the sequence alignment. Looping over sequence probably.
-4. Plot the occupancy/duration data as a grid. Label cells with sequence data.
+Part 1 in Heatmap_Aligner.py
 
-Tried biopython, biotite, dash. Very hard to see how to use custom colours. I think it has to be manual.
+1. Read in single file from PyLipID and extract sequence and Occupancy (duration easy to add)
+2. Write sequence as a fasta, and write occupancy as separate file.
+3. Perform sequence alignment with mafft.
+
+Need to check that this still works as intended.
+
+Part 1 currently in Plotting_code.py. Still in progress, but close. Have tried a lot of things here.
+1.  Reorder alignment for plot - i.e. take from fasta to a plotting-friendly format
+2.  get the occuancy from the file, and reformat to match the above - including gaps.
+3.  plot occupancy vs residue number
+4.  add labels which is the sequnce data
+
+Still needs to be finalised and tested for 1 or >2 sequences. Plotting code being tested in test_plotting.ipynb
