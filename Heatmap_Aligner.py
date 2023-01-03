@@ -15,12 +15,12 @@ Can be used with a single PyLipID output just to make a sequence-based heatmap
 ### Defining input files ###
 ############################
 
-# Where files are
-dir = '/sansom/s156a/bioc1535/MraY/EC_other_protein/Data'
+# Where files are - currently this test dir
+dir = '/sansom/s137/bioc1535/Desktop/git-repos/Heatmap_Aligner/'
 
 # List of input csv files
-csvfile_list = [ "%s/Interaction_UDP1_DEDA/Dataset_UDP1/Dataset.csv" % dir,
-		 "%s/Interaction_UDP1_UPTA/Dataset_UDP1/Dataset.csv" % dir ]
+csvfile_list = [ "%s/DEDA/Dataset.csv" % dir,
+		 "%s/UPTA/Dataset.csv" % dir ]
 
 # List of names for sequnece alignment (optional)
 system_names = [ "DEDA", "UPTA" ]
