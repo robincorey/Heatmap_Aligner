@@ -5,11 +5,6 @@ import numpy as np
 import csv
 import re
 from subprocess import Popen, PIPE, STDOUT
-# biopython needed: pip install biopython 
-# still need to work out how best to align these sequences
-#from Bio import AlignIO,SeqIO
-#from Bio import pairwise2
-#from Bio.pairwise2 import format_alignment
 
 '''
 Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics
@@ -38,7 +33,7 @@ system_names = [ "DEDA", "UPTA" ]
 ### Set variables here ###
 ##########################
 
-
+# Not currently needed
 
 #######################################
 ### Don't touch anything below here ###
@@ -142,6 +137,7 @@ print('Done. Alignment file written to %s/HeatmapAlignment' % dir)
 
 print('Making plot')
 
+# this is currently in a separate script
 plot_heatmap_on_alignment()
 
 print('Done')
