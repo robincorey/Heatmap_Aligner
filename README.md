@@ -5,6 +5,15 @@ A Python script to take the output of multiple PyLipID runs (csv), and plot onto
 
 Currently most of the way there.
 
+Required dependencies
+====
+
+NumPy
+Matplotlib
+
+Current structure
+====
+
 Part 1 in Heatmap_Aligner.py
 
 1. Read in single file from PyLipID and extract sequence and Occupancy (duration easy to add)
