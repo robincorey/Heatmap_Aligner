@@ -7,13 +7,14 @@ import re
 from subprocess import Popen, PIPE, STDOUT
 
 '''
-Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics
-Can be used with a single PyLipID output just to make a sequence-based heatmap
+Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
+
+Can be used with a single PyLipID output (csv) to make a sequence-based heatmap
+
+Written by Robin Corey
 '''
 
-############################
-### Defining input files ###
-############################
+### Defining input files - USER INPUT NEEDED ###
 
 # Where files are - currently this test dir
 dir = '/sansom/s137/bioc1535/Desktop/git-repos/Heatmap_Aligner/'
