@@ -18,18 +18,18 @@ Can be used with a single PyLipID output (csv) to make a sequence-based heatmap
 Written by Robin Corey
 '''
 
-### Defining input files - USER INPUT NEEDED ###
+if __name__ == '__main__':
+        parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
+        group_input = parser.add_argument_group('INPUT arguments')
+        group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files')
+        group_input.add_argument("-d", "--dir", metavar='filename', type=str, required=False, help='Directory where jobs to be run. Default = current', default='./')
+        group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=False, help='Names of systems', default=[])
 
-# Where files are - currently this test dir
-#dir = '/sansom/s137/bioc1535/Desktop/git-repos/Heatmap_Aligner/'
-dir='/Volumes/GoogleDrive/My Drive/Oxford_projects/HeatmapAlignment/Heatmap_Aligner'
+        group_output = parser.add_argument_group('OUTPUT arguments')
+        group_output.add_argument("-o", "--output", metavar='filename', required=False, type=str, help="Output path. Default = ./Heatmap_Aligner", default='./Heatmap_Aligner')
 
-# List of input csv files
-csvfile_list = [ "%s/test_data/DEDA/Dataset.csv" % dir,
-		 "%s/test_data/UPTA/Dataset.csv" % dir ]
-
-# List of names for sequnece alignment (optional)
-system_names = [ "DEDA", "UPTA" ]
+        # Parse arguments from command line
+        args = parser.parse_args()
 
 #######################################
 ### Don't touch anything below here ###
