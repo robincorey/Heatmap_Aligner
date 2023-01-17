@@ -35,16 +35,6 @@ if __name__ == '__main__':
 ### Don't touch anything below here ###
 #######################################
 
-def get_number_of_systems():
-	# not currently needed
-	csv_number = len(csvfile_list)
-	coord_number = len(coord_files)
-	if csv_number == coord_number:
-		print('%s input files being read' % csv_number)
-		return csv_number
-	else:
-		print('mismatch in input files, %s csv files and %s coordinate files' % (csv_number, coord_number))
-
 def get_sequence(csvfile,column):
 	#sequence, heatmap = np.loadtxt(delimiter=',',fname=csvfile, usecols=(0, 1), skiprows=1, unpack=True)
 	with open (csvfile) as inf:
