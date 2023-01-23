@@ -20,6 +20,10 @@ from subprocess import Popen, PIPE, STDOUT
 #   - test gaps reading properly for different alignments
 ####
 
+#######################################
+### Don't touch anything below here ###
+#######################################
+
 if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
         group_input = parser.add_argument_group('INPUT arguments')
@@ -33,12 +37,7 @@ if __name__ == '__main__':
         # Parse arguments from command line
         args = parser.parse_args()
 
-#######################################
-### Don't touch anything below here ###
-#######################################
-
 def get_sequence(csvfile,column):
-	#sequence, heatmap = np.loadtxt(delimiter=',',fname=csvfile, usecols=(0, 1), skiprows=1, unpack=True)
 	with open (csvfile) as inf:
 		reader = csv.reader(inf, delimiter=",")
 		sequence = list(zip(*reader))[0] 
