@@ -10,13 +10,15 @@ import csv
 import re
 from subprocess import Popen, PIPE, STDOUT
 
-'''
-Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
-
-Can be used with a single PyLipID output (csv) to make a sequence-based heatmap
-
-Written by Robin Corey
-'''
+####
+# Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
+# Can be used with a single PyLipID output (csv) to make a sequence-based heatmap
+# Written by Robin Corey
+# Current to-do:
+#   - add options for other metrics other than occupanct
+#   - test on a different env (i.e. other user)
+#   - test gaps reading properly for different alignments
+####
 
 if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
