@@ -13,6 +13,9 @@ from subprocess import Popen, PIPE, STDOUT
 ####
 # Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
 # Can be used with a single PyLipID output (csv) to make a sequence-based heatmap
+#
+# Note - mafft needed: conda install -c bioconda mafft
+#
 # Written by Robin Corey
 # Current to-do:
 #   - add options for other metrics other than occupanct
@@ -37,15 +40,23 @@ if __name__ == '__main__':
         # Parse arguments from command line
         args = parser.parse_args()
 
+########################
+### Define functions ###
+########################
+
+# get sequence from input csv file
 def get_sequence(csvfile,column):
+	# read sequence
 	with open (csvfile) as inf:
 		reader = csv.reader(inf, delimiter=",")
 		sequence = list(zip(*reader))[0] 
+	# read occupancy > can be any attribute
 	with open (csvfile) as inf:
 		reader = csv.reader(inf, delimiter=",")
 		heatmap = list(zip(*reader))[column]
 	return sequence[1:],heatmap[1:], heatmap[:1]
 
+# convert sequence to fasta
 def write_fasta(sequence,csvfile):
 	f = open('HeatmapAlignment/Sequences.txt','a')
 	f.write('> sequence from %s\n' % csvfile) 
@@ -55,6 +66,7 @@ def write_fasta(sequence,csvfile):
 		f.write(res_dict[output]) 
 	f.write('\n\n')
 
+# write occupancy data as text file
 def write_data(heatmap,attribute,csvfile):
 	f = open('HeatmapAlignment/%s.txt' % attribute,'a')
 	f.write('> %s from %s\n' % (attribute, csvfile))
@@ -63,6 +75,7 @@ def write_data(heatmap,attribute,csvfile):
 		f.write('%.2f ' % num)
 	f.write('\n\n')
 
+# run sequence alignment between input sequences - mafft needed
 def sequence_alignment():
 	# build and perform mafft
 	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (dir, dir)
