@@ -8,8 +8,10 @@ Currently most of the way there.
 Required dependencies
 ====
 
-NumPy
-Matplotlib
+MAFFT: 
+```
+conda install -c bioconda mafft
+```
 
 Current structure
 ====
