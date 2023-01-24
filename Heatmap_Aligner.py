@@ -128,6 +128,7 @@ def occupancy_to_new_file ():
                     f.write(' -1 ')
             f.write('\n')
 
+# reorder the files for plotting
 def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in):
     occupancy = []
     with open('Occupancy_reformatted.txt','r') as ifile:
@@ -148,6 +149,7 @@ def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in
             sequence_array.append(char)
     return heatmap, sequence_array, occupancy_count
 
+# plot the sequence and occupancy
 def plot_sequence(heatmap_array,alignment_line,line, sys1, sys2):
     #takes an array of single letter AA codes and residue attribute values
     axs[line].set_yticklabels(['',sys1,sys2])
@@ -234,14 +236,13 @@ for system in np.arange(0,count):
         heatmap_array = []
         text_array = []
         alignment_line = line*count+system
-        print(new_sequence[alignment_line], system, occupancy_count)
         heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
             new_sequence[alignment_line], system, a_line, occupancy_count)
         heatmap_array.append(heatmap_values)
         text_array.append(sequence_array)
         a_line = a_line + 1
-        print(heatmap_array)
         plot_sequence(heatmap_array, alignment_line, line, sys1, sys2)
     add_labels(text_array[0],text_array[1],alignment_line, line)
 
+plt.savefig('%s/HeatmapAlignment/Heatmap.png' % dir, bbox_inches='tight', dpi=600 )
 print('Plot finished, exiting program')
