@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import csv
 import re
-from subprocess import Popen, PIPE, STDOUT
+#from subprocess import Popen, PIPE, STDOUT
 
 ####
 # Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
@@ -18,6 +18,7 @@ from subprocess import Popen, PIPE, STDOUT
 #
 # Written by Robin Corey
 # Current to-do:
+#   - *** fix runtime error from copying code in from separate plotting script ***
 #   - add options for other metrics other than occupanct
 #   - test on a different env (i.e. other user)
 #   - test gaps reading properly for different alignments
@@ -50,7 +51,7 @@ def get_sequence(csvfile,column):
 	with open (csvfile) as inf:
 		reader = csv.reader(inf, delimiter=",")
 		sequence = list(zip(*reader))[0] 
-	# read occupancy > can be any attribute
+	# read occupancy > can be any attribute, although not supported later in script just yet
 	with open (csvfile) as inf:
 		reader = csv.reader(inf, delimiter=",")
 		heatmap = list(zip(*reader))[column]
