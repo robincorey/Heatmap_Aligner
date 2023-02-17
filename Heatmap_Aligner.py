@@ -9,8 +9,7 @@ import numpy as np
 import csv
 import re
 import argparse
-
-#from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT
 
 ####
 # Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
@@ -20,10 +19,8 @@ import argparse
 #
 # Written by Robin Corey
 # Current to-do:
-#   - *** fix runtime error from copying code in from separate plotting script ***
-#   - add options for other metrics other than occupanct
+#   - add options for other metrics other than occupancy
 #   - test on a different env (i.e. other user)
-#   - test gaps reading properly for different alignments
 ####
 
 #######################################
@@ -34,7 +31,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
         group_input = parser.add_argument_group('INPUT arguments')
         group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files')
-        group_input.add_argument("-d", "--dir", metavar='filename', type=str, required=False, help='Directory where jobs to be run. Default = current', default='./')
+        group_input.add_argument("-d", "--dir", type=str, required=False, help='Directory where jobs to be run. Default = current', default='./')
         group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=False, help='Names of systems', default=[])
 
         group_output = parser.add_argument_group('OUTPUT arguments')
@@ -42,6 +39,7 @@ if __name__ == '__main__':
 
         # Parse arguments from command line
         args = parser.parse_args()
+
 
 ########################
 ### Define functions ###
@@ -81,10 +79,10 @@ def write_data(heatmap,attribute,csvfile):
 # run sequence alignment between input sequences - mafft needed
 def sequence_alignment():
 	# build and perform mafft
-	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (dir, dir)
+	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (args.dir, args.dir)
 	process = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
 	# write mafft output to log file, not stdout
-	f = open('%s/HeatmapAlignment/Alignment.log' % dir, 'a')
+	f = open('%s/HeatmapAlignment/Alignment.log' % args.dir, 'a')
 	with process.stdout:
 		for line in iter(process.stdout.readline, b''):
 			f.write(line.decode("utf-8"))
@@ -173,16 +171,16 @@ def add_ticks(offset,line):
 ### Run everything ###
 ######################
 
-# build directories and file structure
+# build args.directories and file structure
 
 try:
-	os.mkdir('%s/HeatmapAlignment' % dir)
+	os.mkdir('%s/HeatmapAlignment' % args.dir)
 except OSError as error:
 	pass
 
-f = open('%s/HeatmapAlignment/Sequences.txt' % dir,'w')
-f = open('%s/HeatmapAlignment/Occupancy.txt' % dir,'w')
-f = open('%s/HeatmapAlignment/Alignment.log' % dir,'w')
+f = open('%s/HeatmapAlignment/Sequences.txt' % args.dir,'w')
+f = open('%s/HeatmapAlignment/Occupancy.txt' % args.dir,'w')
+f = open('%s/HeatmapAlignment/Alignment.log' % args.dir,'w')
 
 # define dictionary for AA codes - allows customisation
 
@@ -196,14 +194,14 @@ print('Loading Data')
 
 # loop through inputs and get sequences and heatmaps
 
-for i in np.arange(len(csvfile_list)):
+for i in np.arange(len(args.input)):
 	# get AA sequence and occupancy values
-	sequence,heatmap,attribute = get_sequence(csvfile_list[i], 4)
+	sequence,heatmap,attribute = get_sequence(args.input[i], 4)
 	# write to file for later analysis/posterity
-	write_fasta(sequence,csvfile_list[i])
-	write_data(heatmap,attribute[0],csvfile_list[i])
+	write_fasta(sequence,args.input[i])
+	write_data(heatmap,attribute[0],args.input[i])
 
-print('Done. Files written to %s/HeatmapAlignment' % dir)
+print('Done. Files written to %s/HeatmapAlignment' % args.dir)
 	
 # run sequence alignment on all sequneces
 
@@ -211,7 +209,7 @@ print('Running alignment')
 
 sequence_alignment()
 
-print('Done. Alignment file written to %s/HeatmapAlignment' % dir)
+print('Done. Alignment file written to %s/HeatmapAlignment' % args.dir)
 
 # reformat data for plotting
 
@@ -220,7 +218,7 @@ print('Reformating files for plotting')
 lines, new_sequence = reorder_alignment_for_plot(count)
 occupancy_to_new_file()
 
-print('Done. Reformatted files written to %s/HeatmapAlignment' % dir)
+print('Done. Reformatted files written to %s/HeatmapAlignment' % args.dir)
 
 # combine all into a lovely plot
 
@@ -247,5 +245,5 @@ for system in np.arange(0,count):
         plot_sequence(heatmap_array, alignment_line, line, sys1, sys2)
     add_labels(text_array[0],text_array[1],alignment_line, line)
 
-plt.savefig('%s/HeatmapAlignment/Heatmap.png' % dir, bbox_inches='tight', dpi=600 )
+plt.savefig('%s/HeatmapAlignment/Heatmap.png' % args.dir, bbox_inches='tight', dpi=600 )
 print('Plot finished, exiting program')
