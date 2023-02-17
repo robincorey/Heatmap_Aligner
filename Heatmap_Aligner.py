@@ -24,6 +24,9 @@ warnings.filterwarnings("ignore")
 # Current to-do:
 #   - add options for other metrics other than occupancy
 #   - test on a different env (i.e. other user)
+#   - residue numbers perhaps?
+#   - ensure visual consistency between different numbers of files
+#   - consider more argparse options
 ####
 
 #######################################
