@@ -10,6 +10,7 @@ import csv
 import re
 import argparse
 from subprocess import Popen, PIPE, STDOUT
+from PIL import Image
 
 ####
 # Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
@@ -136,6 +137,9 @@ def attribute_to_new_file ():
                 else:
                     f.write(' -1 ')
             f.write('\n')
+    max_occ = np.max(occupancy)
+    max_occ = np.array(max_occ, dtype=np.float32)
+    return np.max(max_occ)
 
 # this reorders the attribute file as a prelude to plotting, and stores in a heatmap
 def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in):
@@ -157,18 +161,34 @@ def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in
     return heatmap, sequence_array, occupancy_count
 
 # this plots the attribute data as a heatmap 
-def plot_sequence(heatmap_array,alignment_line,line, sys1, sys2):
+def plot_sequence(heatmap_array,alignment_line,line, sys, max_occ ):
     #takes an array of single letter AA codes and residue attribute values
     axs[line].set_yticklabels(['',sys])
     axs[line].set_yticks([-1,0])
     #axs[line].set_xticklabels(np.arange(-10,60,step=10))
     axs[line].set_xticklabels('')
     #axs[line].set_xticks([])
-    im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0)
+    im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0, vmax=max_occ)
 
 def add_labels(sequence_array,alignment_line,line):
     for x,y in enumerate(np.arange(len(sequence_array))):
         axs[line].text(x-0.3,0.3, sequence_array[x], fontsize=8) # was 0.25 and 10 for 2, hm
+
+def plot_each_line():
+    # for each line, make an array of sequences and plot
+    a_line = 0
+    for system in np.arange(0,count): #count):
+        heatmap_array = []
+        occupancy_count = 0 # currentl not doing anything, but might be useful
+        #alignment_line = int(line)*count+system #line*count+system
+        alignment_line = int(line)+((int(lines)-1)*system)+system
+        heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
+            new_sequence[alignment_line], system, alignment_line, occupancy_count)
+        heatmap_array.append(heatmap_values)
+        plot_sequence(heatmap_array, alignment_line, a_line, sys[system])
+        add_labels(sequence_array,alignment_line, a_line)
+        a_line = a_line + 1
+    return len(sequence_array
 
 ######################
 ### Run everything ###
@@ -219,7 +239,7 @@ print('Done. Alignment file written to %s/HeatmapAlignment' % args.dir)
 print('Reformating files for plotting')
 
 lines, new_sequence = reorder_alignment_for_plot(count)
-occupancy_to_new_file()
+max_occ = occupancy_to_new_file()
 
 print('Done. Reformatted files written to %s/HeatmapAlignment' % args.dir)
 
