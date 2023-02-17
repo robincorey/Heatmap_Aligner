@@ -11,6 +11,8 @@ import re
 import argparse
 from subprocess import Popen, PIPE, STDOUT
 from PIL import Image
+import warnings
+warnings.filterwarnings("ignore")
 
 ####
 # Script to take multiple PyLipID outputs (csv) and create a sequence alignment coloured by lipid statistics, currently just occupancy
@@ -29,19 +31,18 @@ from PIL import Image
 #######################################
 
 if __name__ == '__main__':
-        parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
-        group_input = parser.add_argument_group('INPUT arguments')
-        group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files')
-        group_input.add_argument("-d", "--dir", type=str, required=False, help='Directory where jobs to be run. Default = current', default='./')
-        group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=False, help='Names of systems', default=[])
-	group_input.add_argument("-c", "--cmap", type=str, required=False, help='Which matplotlib color range to use. Default = Reds', default='Reds')
+    parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
+    group_input = parser.add_argument_group('INPUT arguments')
+    group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files, e.g. ./data/A.csv ./data/B.csv ./data/C.csv')
+    group_input.add_argument("-d", "--dir", type=str, required=False, help='Directory where jobs to be run. Default = current', default='.')
+    group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=True, help='Names of systems, e.g. ABCD DEFG HIJK')
+    group_input.add_argument("-c", "--cmap", type=str, required=False, help='Which matplotlib color range to use. Default = Reds', default='Reds')
 
-        group_output = parser.add_argument_group('OUTPUT arguments')
-        group_output.add_argument("-o", "--output", metavar='filename', required=False, type=str, help="Output path. Default = ./Heatmap_Aligner", default='./Heatmap_Aligner')
+    group_output = parser.add_argument_group('OUTPUT arguments')
+    group_output.add_argument("-o", "--output", metavar='filename', required=False, type=str, help="Output path. Default = ./Heatmap_Aligner", default='./Heatmap_Aligner')
 
-        # Parse arguments from command line
-        args = parser.parse_args()
-
+# Parse arguments from command line
+    args = parser.parse_args()
 
 ########################
 ### Define functions ###
@@ -49,47 +50,48 @@ if __name__ == '__main__':
 
 # this gets the AA sequence from the input csv files
 def get_sequence(csvfile,column):
-	# read sequence
-	with open (csvfile) as inf:
-		reader = csv.reader(inf, delimiter=",")
-		sequence = list(zip(*reader))[0] 
-	# read occupancy > can be any attribute, although not supported later in script just yet
-	with open (csvfile) as inf:
-		reader = csv.reader(inf, delimiter=",")
-		heatmap = list(zip(*reader))[column]
-	return sequence[1:],heatmap[1:], heatmap[:1]
+    # read sequence
+    with open (csvfile) as inf:
+        reader = csv.reader(inf, delimiter=",")
+        sequence = list(zip(*reader))[0] 
+    # read occupancy > can be any attribute, although not supported later in script just yet
+    with open (csvfile) as inf:
+        reader = csv.reader(inf, delimiter=",")
+        heatmap = list(zip(*reader))[column]
+    return sequence[1:],heatmap[1:], heatmap[:1]
 
 # this coverts the AA sequence to fasta file, which it writes to a new file
 def write_fasta(sequence,csvfile):
-	f = open('%s/HeatmapAlignment/Sequences.txt' % args.dir, 'a')
-	f.write('> sequence from %s\n' % csvfile) 
-	for res in sequence:
-		# strip residue number
-		output = re.sub(r'\d+', '', res)
-		f.write(res_dict[output]) 
-	f.write('\n\n')
+    f = open('%s/HeatmapAlignment/Sequences.txt' % args.dir, 'a')
+    f.write('> sequence from %s\n' % csvfile) 
+    for res in sequence:
+        # strip residue number
+        output = re.sub(r'\d+', '', res)
+        f.write(res_dict[output]) 
+    f.write('\n\n')
 
 # this gets the occupancy data from the csv and writes as text file
 # attribute here can be changed to other features - to implement
 def write_data(heatmap,attribute,csvfile):
-	f = open('%s/HeatmapAlignment/%s.txt' % attribute, 'a')
-	f.write('> %s from %s\n' % (attribute, csvfile))
-	for res in heatmap:
-		num = float(res)
-		f.write('%.2f ' % num)
-	f.write('\n\n')
+    f = open('%s/HeatmapAlignment/%s.txt' % (args.dir, attribute), 'a')
+    f.write('> %s from %s\n' % (attribute, csvfile))
+    for res in heatmap:
+        num = float(res)
+        f.write('%.2f ' % num)
+    f.write('\n\n')
 
 # this run sequence alignment between all of the input sequences 
 # mafft is needed here conda install -c bioconda mafft
 def sequence_alignment():
-	# build and perform mafft
-	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (args.dir, args.dir)
-	process = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
-	# write mafft output to log file, not stdout
-	f = open('%s/HeatmapAlignment/Alignment.log' % args.dir, 'a')
-	with process.stdout:
-		for line in iter(process.stdout.readline, b''):
-			f.write(line.decode("utf-8"))
+    # build and perform mafft
+    command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > \
+		 "%s/HeatmapAlignment/Alignment.txt"' % (args.dir, args.dir)
+    process = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
+    # write mafft output to log file, not stdout
+    f = open('%s/HeatmapAlignment/Alignment.log' % args.dir, 'a')
+    with process.stdout:
+        for line in iter(process.stdout.readline, b''):
+            f.write(line.decode("utf-8"))
 
 # functions after here initially worked through in ipynb notebook
 
@@ -99,37 +101,32 @@ table = str.maketrans('', '', string.ascii_lowercase)
 
 def reorder_alignment_for_plot(num):
     new_sequence = []
-    with open('%s/HeatmapAlignment/Sequences.txt' % args.dir, "r") as ifile:
+    with open('%s/HeatmapAlignment/Alignment.txt' % args.dir, "r") as ifile:
         # this count keeps track of total lines
-        count = 0
+        count_lines = 0
         # define one data series for each sequences used
         for line_number,line in enumerate(ifile):
-            if 'sequence' in line:
-                # this bit simply removes non-sequence chars from the line
-                line = (line.translate(table).strip('\n '))
-                # save line with revised line number
-                line_array = [ line, count ]
-                new_sequence.append(line.translate(table).strip('\n '))
-                count=count+1
-    # count/num gives the lines per sequence
-    return count/num, new_sequence
+            if '>' not in line:
+                new_sequence.append(line.strip('\n '))
+                count_lines=count_lines+1
+    return count_lines/num, new_sequence
 
 # this reformats the file with attribute date to match the alignment file
 # writes a new file - need to check conversion from "occupancy" works
-def attribute_to_new_file ():
+def attribute_to_new_file(count, attribute):
     # this list called occupancy due to legacy
     occupancy = []
-    with open('%s/HeatmapAlignment/%s.txt' % attribute,'r') as ifile:
+    with open('%s/HeatmapAlignment/%s.txt' % (args.dir, attribute),'r') as ifile:
             for line in ifile:
                 if '>' not in line:
                     if '0' in line:
                         occupancy.append(line.split( ))
-    f = open('%s/HeatmapAlignment/%s_reformatted.txt' % attribute ,'w')
+    f = open('%s/HeatmapAlignment/%s_reformatted.txt' % (args.dir, attribute) ,'w')
     for system in np.arange(0,count):
         residue_count = 0
         for line in np.array(range(int(lines))):
             sequence = new_sequence[int(line)+((int(lines)-1)*system)+system]
-            f = open('%s/HeatmapAlignment/%s_reformatted.txt','a')
+            f = open('%s/HeatmapAlignment/%s_reformatted.txt' % (args.dir, attribute) ,'a')
             for aa,char in enumerate(sequence):
                 if char != '-':
                     f.write('%s ' % occupancy[system][residue_count]) 
@@ -142,9 +139,9 @@ def attribute_to_new_file ():
     return np.max(max_occ)
 
 # this reorders the attribute file as a prelude to plotting, and stores in a heatmap
-def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in):
+def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in, attribute):
     occupancy = []
-    with open('%s/HeatmapAlignment/%s_reformatted.txt','r') as ifile:
+    with open('%s/HeatmapAlignment/%s_reformatted.txt' % (args.dir, attribute) ,'r') as ifile:
         for line in ifile:
                 occupancy.append(line.split( ))
     heatmap = []
@@ -163,32 +160,31 @@ def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in
 # this plots the attribute data as a heatmap 
 def plot_sequence(heatmap_array,alignment_line,line, sys, max_occ ):
     #takes an array of single letter AA codes and residue attribute values
-    axs[line].set_yticklabels(['',sys])
+    axs[line].set_yticklabels(['', sys])
     axs[line].set_yticks([-1,0])
-    #axs[line].set_xticklabels(np.arange(-10,60,step=10))
     axs[line].set_xticklabels('')
-    #axs[line].set_xticks([])
     im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0, vmax=max_occ)
+    # here, could add numbers to the end of each line. Interesting idea.
 
 def add_labels(sequence_array,alignment_line,line):
     for x,y in enumerate(np.arange(len(sequence_array))):
         axs[line].text(x-0.3,0.3, sequence_array[x], fontsize=8) # was 0.25 and 10 for 2, hm
+    # work out how to optimise the spacing and fontsize.
 
-def plot_each_line():
+def plot_each_line(count):
     # for each line, make an array of sequences and plot
     a_line = 0
-    for system in np.arange(0,count): #count):
+    for system in np.arange(0,count):
         heatmap_array = []
         occupancy_count = 0 # currentl not doing anything, but might be useful
-        #alignment_line = int(line)*count+system #line*count+system
         alignment_line = int(line)+((int(lines)-1)*system)+system
         heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
-            new_sequence[alignment_line], system, alignment_line, occupancy_count)
+            new_sequence[alignment_line], system, alignment_line, occupancy_count, attribute [0])
         heatmap_array.append(heatmap_values)
-        plot_sequence(heatmap_array, alignment_line, a_line, sys[system])
+        plot_sequence(heatmap_array, alignment_line, a_line, args.names_list[system] ,max_occ+15)
         add_labels(sequence_array,alignment_line, a_line)
         a_line = a_line + 1
-    return len(sequence_array
+    return len(sequence_array)
 
 ######################
 ### Run everything ###
@@ -197,36 +193,37 @@ def plot_each_line():
 # build args.directories and file structure
 
 try:
-	os.mkdir('%s/HeatmapAlignment' % args.dir)
+    os.mkdir('%s/HeatmapAlignment' % args.dir)
 except OSError as error:
-	pass
+    pass
 
 f = open('%s/HeatmapAlignment/Sequences.txt' % args.dir,'w')
 f = open('%s/HeatmapAlignment/Occupancy.txt' % args.dir,'w')
 f = open('%s/HeatmapAlignment/Alignment.log' % args.dir,'w')
 
-# define dictionary for AA codes - allows customisation
+# define dictionary for AA codes - this allows for customisation if needed
 
 res_dict = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
-	'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
-	'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
-	'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M',
-	'HSD': 'H', 'HSE': 'H', 'GLU0': 'E', 'ASP0': 'D'}
+    'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
+    'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
+    'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M',
+    'HSD': 'H', 'HSE': 'H', 'GLU0': 'E', 'ASP0': 'D'}
 
 print('Loading Data')
 
 # loop through inputs and get sequences and heatmaps
 
 for i in np.arange(len(args.input)):
-	# get AA sequence and occupancy values
-	sequence,heatmap,attribute = get_sequence(args.input[i], 4)
-	# write to file for later analysis/posterity
-	write_fasta(sequence,args.input[i])
-	write_data(heatmap,attribute[0],args.input[i])
+    # get AA sequence and occupancy values
+    # Here 2 = occupancy, can change
+    sequence, heatmap, attribute = get_sequence(args.input[i], 2)
+    # write to file for later analysis/posterity
+    write_fasta(sequence,args.input[i])
+    write_data(heatmap,attribute[0],args.input[i])
 
 print('Done. Files written to %s/HeatmapAlignment' % args.dir)
-	
-# run sequence alignment on all sequneces
+    
+# run sequence alignment on all sequences
 
 print('Running alignment')
 
@@ -238,8 +235,8 @@ print('Done. Alignment file written to %s/HeatmapAlignment' % args.dir)
 
 print('Reformating files for plotting')
 
-lines, new_sequence = reorder_alignment_for_plot(count)
-max_occ = occupancy_to_new_file()
+lines, new_sequence = reorder_alignment_for_plot(len(args.input))
+max_occ = attribute_to_new_file(len(args.input),attribute[0])
 
 print('Done. Reformatted files written to %s/HeatmapAlignment' % args.dir)
 
@@ -247,26 +244,28 @@ print('Done. Reformatted files written to %s/HeatmapAlignment' % args.dir)
 
 print('Making plot')
 
-fig = matplotlib.pyplot.gcf()
-fig.set_size_inches(lines*(count+1), 6)
-gs = fig.add_gridspec(int(lines),1, hspace=0)
-axs = gs.subplots(sharex=True)
+# this makes a separate plot for each line of the alignment
+list_im = []
+for line in np.arange(0,int(lines)): 
+    fig = matplotlib.pyplot.gcf()
+    fig.set_size_inches(12, 1) # need to make scalable (18 for 2...)
+    gs = fig.add_gridspec(len(args.input),1,hspace=0) #lines
+    axs = gs.subplots(sharex=True)
+    fig.patch.set_facecolor('w')
+    # call the main plotting function
+    line_length = plot_each_line(len(args.input))
+    pad = (line_length/60)
+    plt.subplots_adjust(left=0.1, right=0.9*pad, top=0.8, bottom=0.2*pad)
+    plt.savefig('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ) )
+    list_im.append('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ))
+    plt.close()
 
-a = np.array(range(int(lines)))
-occupancy_count = 0 
-a_line = 0
-for system in np.arange(0,count):
-    for line in np.arange(2):
-        heatmap_array = []
-        text_array = []
-        alignment_line = line*count+system
-        heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
-            new_sequence[alignment_line], system, a_line, occupancy_count)
-        heatmap_array.append(heatmap_values)
-        text_array.append(sequence_array)
-        a_line = a_line + 1
-        plot_sequence(heatmap_array, alignment_line, line, sys1, sys2)
-    add_labels(text_array[0],text_array[1],alignment_line, line)
+# finally, combine the individial plots into a final plot
+imgs = [ Image.open(i) for i in list_im ]
+min_shape = sorted( [(np.sum(i.size), i.size ) for i in imgs])[0][1]
+imgs_comb = np.vstack([i.resize(min_shape) for i in imgs])
+imgs_comb = np.vstack(imgs)
+imgs_comb = Image.fromarray(imgs_comb)
+imgs_comb.save( '%s/HeatmapAlignment/full_alignment.png' % args.dir )
 
-plt.savefig('%s/HeatmapAlignment/Heatmap.png' % args.dir, bbox_inches='tight', dpi=600 )
-print('Plot finished, exiting program')
+print('Plot finsihed, see %s/HeatmapAlignment/full_alignment.png' % args.dir ) 
