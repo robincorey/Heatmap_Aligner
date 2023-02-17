@@ -33,6 +33,7 @@ if __name__ == '__main__':
         group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files')
         group_input.add_argument("-d", "--dir", type=str, required=False, help='Directory where jobs to be run. Default = current', default='./')
         group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=False, help='Names of systems', default=[])
+	group_input.add_argument("-c", "--cmap", type=str, required=False, help='Which matplotlib color range to use. Default = Reds', default='Reds')
 
         group_output = parser.add_argument_group('OUTPUT arguments')
         group_output.add_argument("-o", "--output", metavar='filename', required=False, type=str, help="Output path. Default = ./Heatmap_Aligner", default='./Heatmap_Aligner')
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 ### Define functions ###
 ########################
 
-# get sequence from input csv file
+# this gets the AA sequence from the input csv files
 def get_sequence(csvfile,column):
 	# read sequence
 	with open (csvfile) as inf:
@@ -57,9 +58,9 @@ def get_sequence(csvfile,column):
 		heatmap = list(zip(*reader))[column]
 	return sequence[1:],heatmap[1:], heatmap[:1]
 
-# convert sequence to fasta
+# this coverts the AA sequence to fasta file, which it writes to a new file
 def write_fasta(sequence,csvfile):
-	f = open('HeatmapAlignment/Sequences.txt','a')
+	f = open('%s/HeatmapAlignment/Sequences.txt' % args.dir, 'a')
 	f.write('> sequence from %s\n' % csvfile) 
 	for res in sequence:
 		# strip residue number
@@ -67,16 +68,18 @@ def write_fasta(sequence,csvfile):
 		f.write(res_dict[output]) 
 	f.write('\n\n')
 
-# write occupancy data as text file
+# this gets the occupancy data from the csv and writes as text file
+# attribute here can be changed to other features - to implement
 def write_data(heatmap,attribute,csvfile):
-	f = open('HeatmapAlignment/%s.txt' % attribute,'a')
+	f = open('%s/HeatmapAlignment/%s.txt' % attribute, 'a')
 	f.write('> %s from %s\n' % (attribute, csvfile))
 	for res in heatmap:
 		num = float(res)
 		f.write('%.2f ' % num)
 	f.write('\n\n')
 
-# run sequence alignment between input sequences - mafft needed
+# this run sequence alignment between all of the input sequences 
+# mafft is needed here conda install -c bioconda mafft
 def sequence_alignment():
 	# build and perform mafft
 	command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > "%s/HeatmapAlignment/Alignment.txt"' % (args.dir, args.dir)
@@ -87,11 +90,15 @@ def sequence_alignment():
 		for line in iter(process.stdout.readline, b''):
 			f.write(line.decode("utf-8"))
 
-# read alignment file into NumPy array
+# functions after here initially worked through in ipynb notebook
+
+# this reads the newly poducted alignment file into NumPy array
+
 table = str.maketrans('', '', string.ascii_lowercase)
+
 def reorder_alignment_for_plot(num):
     new_sequence = []
-    with open('test.txt', "r") as ifile:
+    with open('%s/HeatmapAlignment/Sequences.txt' % args.dir, "r") as ifile:
         # this count keeps track of total lines
         count = 0
         # define one data series for each sequences used
@@ -102,70 +109,66 @@ def reorder_alignment_for_plot(num):
                 # save line with revised line number
                 line_array = [ line, count ]
                 new_sequence.append(line.translate(table).strip('\n '))
-                #print(new_sequence)'''
                 count=count+1
     # count/num gives the lines per sequence
     return count/num, new_sequence
 
-# reformat occupancy file
-def occupancy_to_new_file ():
+# this reformats the file with attribute date to match the alignment file
+# writes a new file - need to check conversion from "occupancy" works
+def attribute_to_new_file ():
+    # this list called occupancy due to legacy
     occupancy = []
-    with open('Occupancy.txt','r') as ifile:
+    with open('%s/HeatmapAlignment/%s.txt' % attribute,'r') as ifile:
             for line in ifile:
                 if '>' not in line:
                     if '0' in line:
                         occupancy.append(line.split( ))
-    f = open('Occupancy_reformatted.txt','w')
+    f = open('%s/HeatmapAlignment/%s_reformatted.txt' % attribute ,'w')
     for system in np.arange(0,count):
         residue_count = 0
         for line in np.array(range(int(lines))):
-            sequence = new_sequence[system+(line*count)]
-            f = open('Occupancy_reformatted.txt','a')
+            sequence = new_sequence[int(line)+((int(lines)-1)*system)+system]
+            f = open('%s/HeatmapAlignment/%s_reformatted.txt','a')
             for aa,char in enumerate(sequence):
                 if char != '-':
-                    f.write('%s ' % occupancy[system][residue_count])
+                    f.write('%s ' % occupancy[system][residue_count]) 
                     residue_count = residue_count+1
                 else:
                     f.write(' -1 ')
             f.write('\n')
 
-# reorder the files for plotting
+# this reorders the attribute file as a prelude to plotting, and stores in a heatmap
 def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in):
     occupancy = []
-    with open('Occupancy_reformatted.txt','r') as ifile:
+    with open('%s/HeatmapAlignment/%s_reformatted.txt','r') as ifile:
         for line in ifile:
                 occupancy.append(line.split( ))
     heatmap = []
     sequence_array = []
     occupancy_count = occupancy_count_in
-    residue_count = occupancy_count_in
     for aa,char in enumerate(sequence):
         if char != '-1':
             heatmap.append(float(occupancy[alignment_line][aa]))
             sequence_array.append(char)
             occupancy_count = occupancy_count+1
-            residue_count = residue_count+1
         else:
             heatmap.append(-1)
             sequence_array.append(char)
     return heatmap, sequence_array, occupancy_count
 
-# plot the sequence and occupancy
+# this plots the attribute data as a heatmap 
 def plot_sequence(heatmap_array,alignment_line,line, sys1, sys2):
     #takes an array of single letter AA codes and residue attribute values
-    axs[line].set_yticklabels(['',sys1,sys2])
+    axs[line].set_yticklabels(['',sys])
+    axs[line].set_yticks([-1,0])
+    #axs[line].set_xticklabels(np.arange(-10,60,step=10))
     axs[line].set_xticklabels('')
-    im = axs[line].imshow(heatmap_array, cmap='Reds', vmin=0, vmax=100 )
+    #axs[line].set_xticks([])
+    im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0)
 
-def add_labels(text_array_1,text_array_2,alignment_line,line):
-    for x,y in enumerate(np.arange(len(text_array_1))):
-        axs[line].text(x-0.25,0.25, text_array_1[x], fontsize=10)
-    for x,y in enumerate(np.arange(len(text_array_2))):
-        axs[line].text(x-0.25,(1.25), text_array_2[x], fontsize=10)
-
-def add_ticks(offset,line):
-    for x,y in enumerate(np.arange(0,60,step=10)):
-        axs[line].text(y-0.4,2.5, y+offset, fontsize=10)
+def add_labels(sequence_array,alignment_line,line):
+    for x,y in enumerate(np.arange(len(sequence_array))):
+        axs[line].text(x-0.3,0.3, sequence_array[x], fontsize=8) # was 0.25 and 10 for 2, hm
 
 ######################
 ### Run everything ###
