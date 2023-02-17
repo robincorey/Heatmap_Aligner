@@ -3,7 +3,7 @@ About
 
 A Python script to take the output of multiple PyLipID runs (csv), and plot onto a sequence alignment.
 
-Currently most of the way there.
+Currently runnable with the test data, still needs testing on different datasets/systems
 
 Required dependencies
 ====
@@ -13,21 +13,27 @@ MAFFT:
 conda install -c bioconda mafft
 ```
 
-Current structure
+To run using test data
 ====
 
-Part 1 in Heatmap_Aligner.py
+Download Heatmap_Aligner.py to local system. To see the options, run:
 
-1. Read in single file from PyLipID and extract sequence and Occupancy (duration easy to add)
-2. Write sequence as a fasta, and write occupancy as separate file.
-3. Perform sequence alignment with mafft.
+```
+python Heatmap_Aligner.py -h
+```
 
-Need to check that this still works as intended.
+Then download test data. Make sure MAFFT installed before running on data.
 
-Part 1 currently in Plotting_code.py. Still in progress, but close. Have tried a lot of things here.
-1.  Reorder alignment for plot - i.e. take from fasta to a plotting-friendly format
-2.  get the occuancy from the file, and reformat to match the above - including gaps.
-3.  plot occupancy vs residue number
-4.  add labels which is the sequnce data
+Then run Heatmap_Aligner.py using Python 3
 
-Still needs to be finalised and tested for 1 or >2 sequences. Plotting code being tested in test_plotting.ipynb
+```
+python Heatmap_Aligner.py -i test_data/YNGC/Dataset.csv test_data/YABI/Dataset.csv test_data/YQED/Dataset.csv -n YNGC YABI YQED
+```
+
+Note that -i and -n have to be defined. Directory (-d) and colour scheme (-c) are optional variable.
+
+Next steps
+====
+* check documention
+* consider CI
+* add suggested new features
