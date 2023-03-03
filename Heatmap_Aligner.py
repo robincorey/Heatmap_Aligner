@@ -166,7 +166,8 @@ def plot_sequence(heatmap_array,alignment_line,line, sys, max_occ ):
     axs[line].set_yticklabels(['', sys])
     axs[line].set_yticks([-1,0])
     axs[line].set_xticklabels('')
-    im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0, vmax=max_occ)
+    im = axs[line].imshow(heatmap_array, cmap=args.cmap, vmin=0, vmax=max_occ+15)
+    return im
     # here, could add numbers to the end of each line. Interesting idea.
 
 def add_labels(sequence_array,alignment_line,line):
@@ -184,10 +185,10 @@ def plot_each_line(count):
         heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
             new_sequence[alignment_line], system, alignment_line, occupancy_count, attribute [0])
         heatmap_array.append(heatmap_values)
-        plot_sequence(heatmap_array, alignment_line, a_line, args.names_list[system] ,max_occ+15)
+        im = plot_sequence(heatmap_array, alignment_line, a_line, args.names_list[system] ,max_occ+15)
         add_labels(sequence_array,alignment_line, a_line)
         a_line = a_line + 1
-    return len(sequence_array)
+    return len(sequence_array), im
 
 ######################
 ### Run everything ###
@@ -251,12 +252,13 @@ print('Making plot')
 list_im = []
 for line in np.arange(0,int(lines)): 
     fig = matplotlib.pyplot.gcf()
-    fig.set_size_inches(72/(len(args.input)), 1) # check scalability here 
+    #fig.set_size_inches(72/(len(args.input)), 1) # check scalability here 
+    fig.set_size_inches(12, 1)
     gs = fig.add_gridspec(len(args.input),1,hspace=0) #lines
     axs = gs.subplots(sharex=True)
     fig.patch.set_facecolor('w')
     # call the main plotting function
-    line_length = plot_each_line(len(args.input))
+    line_length, im = plot_each_line(len(args.input))
     pad = (line_length/60)
     if pad == 1.0:
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)
@@ -266,6 +268,15 @@ for line in np.arange(0,int(lines)):
     list_im.append('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ))
     plt.close()
 
+# plot colorbar separately
+a = np.array([[0,max_occ+15]])
+#plt.figure(figsize=(4, 0.9))
+img = plt.imshow(a, cmap=args.cmap)
+plt.gca().set_visible(False)
+#cax = plt.axes([0.1, 0.1, 0.6, 0.2])
+plt.colorbar(orientation='horizontal') #, cax=cax)
+plt.savefig('%s/HeatmapAlignment/colorbar.png' % (args.dir) )
+
 # finally, combine the individial plots into a final plot
 imgs = [ Image.open(i) for i in list_im ]
 min_shape = sorted( [(np.sum(i.size), i.size ) for i in imgs])[0][1]
@@ -274,4 +285,5 @@ imgs_comb = np.vstack(imgs)
 imgs_comb = Image.fromarray(imgs_comb)
 imgs_comb.save( '%s/HeatmapAlignment/full_alignment.png' % args.dir )
 
-print('Plot finsihed, see %s/HeatmapAlignment/full_alignment.png' % args.dir ) 
+print('Plot finished, see %s/HeatmapAlignment/full_alignment.png' % args.dir ) 
+print('Color bar written separately, see %s/HeatmapAlignment/colorbar.png' % args.dir )
