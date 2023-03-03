@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 #   - add options for other metrics other than occupancy
 #   - test on a different env (i.e. other user)
 #   - residue numbers perhaps?
-#   - ensure visual consistency between different numbers of files
+#   - ensure visual consistency between different numbers of files/image scaling
 #   - consider more argparse options
 ####
 
@@ -251,7 +251,7 @@ print('Making plot')
 list_im = []
 for line in np.arange(0,int(lines)): 
     fig = matplotlib.pyplot.gcf()
-    fig.set_size_inches(12, 1) # need to make scalable (18 for 2...)
+    fig.set_size_inches(72/(len(args.input)), 1) # check scalability here 
     gs = fig.add_gridspec(len(args.input),1,hspace=0) #lines
     axs = gs.subplots(sharex=True)
     fig.patch.set_facecolor('w')
@@ -259,11 +259,9 @@ for line in np.arange(0,int(lines)):
     line_length = plot_each_line(len(args.input))
     pad = (line_length/60)
     if pad == 1.0:
-        print('y')
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)
     else:
-        print('n')
-        plt.subplots_adjust(left=0.1, right=0.1+0.8*(pad), top=0.8, bottom=0.2*pad)
+        plt.subplots_adjust(left=0.1, right=0.9*(pad), top=0.9, bottom=0.2)
     plt.savefig('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ) )
     list_im.append('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ))
     plt.close()
