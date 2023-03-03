@@ -258,7 +258,12 @@ for line in np.arange(0,int(lines)):
     # call the main plotting function
     line_length = plot_each_line(len(args.input))
     pad = (line_length/60)
-    plt.subplots_adjust(left=0.1, right=0.9*pad, top=0.8, bottom=0.2*pad)
+    if pad == 1.0:
+        print('y')
+        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)
+    else:
+        print('n')
+        plt.subplots_adjust(left=0.1, right=0.1+0.8*(pad), top=0.8, bottom=0.2*pad)
     plt.savefig('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ) )
     list_im.append('%s/HeatmapAlignment/alignment_line.%s.png' % (args.dir, line ))
     plt.close()
