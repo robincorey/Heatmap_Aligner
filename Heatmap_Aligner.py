@@ -22,16 +22,11 @@ warnings.filterwarnings("ignore")
 #
 # Written by Robin Corey
 # Current to-do:
-#   - add options for other metrics other than occupancy
+#   - add options for other metrics other than occupancy, like duration and residence time
 #   - test on a different env (i.e. other user)
-#   - residue numbers perhaps?
+#   - residue numbers perhaps - add to end of line
 #   - ensure visual consistency between different numbers of files/image scaling
-#   - consider more argparse options
 ####
-
-#######################################
-### Don't touch anything below here ###
-#######################################
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Script to take multiple PyLipID outputs and create a sequence alignment coloured by lipid statistics', formatter_class=argparse.RawTextHelpFormatter)
