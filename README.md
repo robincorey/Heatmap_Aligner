@@ -1,9 +1,9 @@
 About
 ====
 
-A Python script to take the output of multiple PyLipID runs (csv), and plot onto a sequence alignment.
+A Python script to take the output of multiple PyLipID runs (csv), and plot onto a sequence alignment. Currently runnable with test data for any number of seqences, still needs testing on different datasets/systems
 
-Currently runnable with the test data, still needs testing on different datasets/systems
+Produces several txt output files as part of the plotting process, as well as png files for each line of the alignment ('alignment_line.X.png') and the full alignment ('full_alignment.png'). A colorbar is plotted separately ('colorbar.png'). 
 
 Required dependencies
 ====
@@ -36,4 +36,4 @@ Next steps
 ====
 * check documention
 * consider CI
-* add suggested new features
+* consider adding optional residue numbers
