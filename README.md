@@ -27,7 +27,7 @@ Then download test data. Make sure MAFFT installed before running on data.
 Then run Heatmap_Aligner.py using Python 3
 
 ```
-python Heatmap_Aligner.py -i test_data/YNGC/Dataset.csv test_data/YABI/Dataset.csv test_data/YQED/Dataset.csv -n YNGC YABI YQED
+python Heatmap_Aligner.py -i test_data/YNGC/Dataset.csv test_data/YABI/Dataset.csv test_data/YQED/Dataset.csv test_data/SA_UptA/Dataset.csv test_data/BC_UptA/Dataset.csv test_data/YTXB/Dataset.csv -n YNGC YABI YQED SA_UPTA BC_UPTA YTXB -c Blues
 ```
 
 Note that -i and -n have to be defined. Directory (-d) and colour scheme (-c) are optional variable.
