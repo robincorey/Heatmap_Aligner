@@ -78,8 +78,8 @@ def write_data(heatmap,attribute,csvfile):
         f.write('%.2f ' % num)
     f.write('\n\n')
 
-# this run sequence alignment between all of the input sequences 
-# mafft is needed here conda install -c bioconda mafft
+# this runs a sequence alignment between all of the input sequences 
+# mafft is needed here: conda install -c bioconda mafft
 def sequence_alignment():
     # build and perform mafft
     command = 'mafft --retree 2 --inputorder --inputorder "%s/HeatmapAlignment/Sequences.txt" > \
@@ -91,12 +91,8 @@ def sequence_alignment():
         for line in iter(process.stdout.readline, b''):
             f.write(line.decode("utf-8"))
 
-# functions after here initially worked through in ipynb notebook
-
 # this reads the newly poducted alignment file into NumPy array
-
 table = str.maketrans('', '', string.ascii_lowercase)
-
 def reorder_alignment_for_plot(num):
     new_sequence = []
     with open('%s/HeatmapAlignment/Alignment.txt' % args.dir, "r") as ifile:
@@ -167,15 +163,16 @@ def plot_sequence(heatmap_array,alignment_line,line, sys, max_occ ):
 
 def add_labels(sequence_array,alignment_line,line):
     for x,y in enumerate(np.arange(len(sequence_array))):
-        axs[line].text(x-0.3,0.3, sequence_array[x], fontsize=8) # was 0.25 and 10 for 2, hm
-    # work out how to optimise the spacing and fontsize.
+        axs[line].text(x-0.3,0.3, sequence_array[x], fontsize=8) # was 0.25 and 10 for 2
+    # work out how to optimise the spacing and fontsize
+    # test on a different python environment
 
 def plot_each_line(count):
     # for each line, make an array of sequences and plot
     a_line = 0
     for system in np.arange(0,count):
         heatmap_array = []
-        occupancy_count = 0 # currentl not doing anything, but might be useful
+        occupancy_count = 0 # currently not doing anything, but might be useful
         alignment_line = int(line)+((int(lines)-1)*system)+system
         heatmap_values, sequence_array, occupancy_count = get_occupancy_reordered(
             new_sequence[alignment_line], system, alignment_line, occupancy_count, attribute [0])
