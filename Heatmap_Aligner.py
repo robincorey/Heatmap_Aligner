@@ -128,9 +128,9 @@ def attribute_to_new_file(count, attribute):
                 else:
                     f.write(' -1 ')
             f.write('\n')
-    max_occ = np.max(occupancy)
+    max_occ = max(occupancy[0])
     max_occ = np.array(max_occ, dtype=np.float32)
-    return np.max(max_occ)
+    return max_occ
 
 # this reorders the attribute file as a prelude to plotting, and stores in a heatmap
 def get_occupancy_reordered(sequence, system, alignment_line, occupancy_count_in, attribute):
