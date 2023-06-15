@@ -33,7 +33,7 @@ if __name__ == '__main__':
     group_input = parser.add_argument_group('INPUT arguments')
     group_input.add_argument("-i", "--input", nargs='+', metavar='filename', type=str, required=True, help='Paths to input files, e.g. ./data/A.csv ./data/B.csv ./data/C.csv')
     group_input.add_argument("-d", "--dir", type=str, required=False, help='Directory where jobs to be run. Default = current', default='.')
-    group_input.add_argument("-n", "--names_list", nargs='+', metavar='filename', type=str, required=True, help='Names of systems, e.g. ABCD DEFG HIJK')
+    group_input.add_argument("-n", "--names_list", nargs='+', type=str, required=True, help='Names of systems, e.g. ABCD DEFG HIJK')
     group_input.add_argument("-c", "--cmap", type=str, required=False, help='Which matplotlib color range to use. Default = Reds', default='Reds')
 
     group_output = parser.add_argument_group('OUTPUT arguments')
@@ -212,7 +212,7 @@ print('Loading Data')
 for i in np.arange(len(args.input)):
     # get AA sequence and occupancy values
     # Here 2 = occupancy, can change
-    sequence, heatmap, attribute = get_sequence(args.input[i], 2)
+    sequence, heatmap, attribute = get_sequence(args.input[i], 4) # 4
     # write to file for later analysis/posterity
     write_fasta(sequence,args.input[i])
     write_data(heatmap,attribute[0],args.input[i])
